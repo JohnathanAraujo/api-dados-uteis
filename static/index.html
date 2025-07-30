@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API de Dados Úteis</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: white;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .cards-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+
+        .card-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 15px;
+            font-size: 1.5rem;
+            color: white;
+        }
+
+        .cep-icon { background: linear-gradient(45deg, #4CAF50, #45a049); }
+        .clima-icon { background: linear-gradient(45deg, #2196F3, #1976D2); }
+        .moeda-icon { background: linear-gradient(45deg, #FF9800, #F57C00); }
+
+        .card-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            width: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+        }
+
+        .result h3 {
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            padding: 5px 0;
+        }
+
+        .result-label {
+            font-weight: 500;
+            color: #666;
+        }
+
+        .result-value {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .error {
+            background: #ffebee;
+            border-left-color: #f44336;
+            color: #c62828;
+        }
+
+        .loading {
+            text-align: center;
+            color: #666;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .coordinates-input {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .cards-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .coordinates-input {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><i class="fas fa-database"></i> API de Dados Úteis</h1>
+            <p>Consulte CEP, clima e cotações de moedas de forma simples e rápida</p>
+        </div>
+
+        <div class="cards-container">
+            <!-- Card CEP -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon cep-icon">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <h2 class="card-title">Consulta de CEP</h2>
+                </div>
+                
+                <div class="form-group">
+                    <label for="cep">Digite o CEP:</label>
+                    <input type="text" id="cep" class="form-control" placeholder="00000-000" maxlength="9">
+                </div>
+                
+                <button class="btn" onclick="consultarCEP()">
+                    <i class="fas fa-search"></i> Buscar CEP
+                </button>
+                
+                <div id="resultado-cep"></div>
+            </div>
+
+            <!-- Card Clima -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon clima-icon">
+                        <i class="fas fa-cloud-sun"></i>
+                    </div>
+                    <h2 class="card-title">Previsão do Tempo</h2>
+                </div>
+                
+                <div class="form-group">
+                    <label>Coordenadas:</label>
+                    <div class="coordinates-input">
+                        <input type="number" id="latitude" class="form-control" placeholder="Latitude" step="any">
+                        <input type="number" id="longitude" class="form-control" placeholder="Longitude" step="any">
+                    </div>
+                </div>
+                
+                <button class="btn" onclick="consultarClima()">
+                    <i class="fas fa-search"></i> Consultar Clima
+                </button>
+                
+                <div id="resultado-clima"></div>
+            </div>
+
+            <!-- Card Moeda -->
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-icon moeda-icon">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <h2 class="card-title">Cotação de Moedas</h2>
+                </div>
+                
+                <div class="form-group">
+                    <label for="par-moeda">Par de Moedas:</label>
+                    <select id="par-moeda" class="form-control">
+                        <option value="USD-BRL">USD → BRL (Dólar → Real)</option>
+                        <option value="EUR-BRL">EUR → BRL (Euro → Real)</option>
+                        <option value="GBP-BRL">GBP → BRL (Libra → Real)</option>
+                        <option value="BTC-BRL">BTC → BRL (Bitcoin → Real)</option>
+                        <option value="ETH-BRL">ETH → BRL (Ethereum → Real)</option>
+                        <option value="CAD-BRL">CAD → BRL (Dólar Canadense → Real)</option>
+                        <option value="JPY-BRL">JPY → BRL (Iene → Real)</option>
+                        <option value="CHF-BRL">CHF → BRL (Franco Suíço → Real)</option>
+                        <option value="AUD-BRL">AUD → BRL (Dólar Australiano → Real)</option>
+                        <option value="CNY-BRL">CNY → BRL (Yuan → Real)</option>
+                    </select>
+                </div>
+                
+                <button class="btn" onclick="consultarMoeda()">
+                    <i class="fas fa-search"></i> Consultar Cotação
+                </button>
+                
+                <div id="resultado-moeda"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'http://localhost:8000';
+
+        // Função para formatar CEP
+        function formatarCEP(cep) {
+            return cep.replace(/(\d{5})(\d{3})/, '$1-$2');
+        }
+
+        // Função para mostrar loading
+        function mostrarLoading(elementId) {
+            document.getElementById(elementId).innerHTML = `
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Carregando...</p>
+                </div>
+            `;
+        }
+
+        // Função para mostrar erro
+        function mostrarErro(elementId, mensagem) {
+            document.getElementById(elementId).innerHTML = `
+                <div class="result error">
+                    <h3><i class="fas fa-exclamation-triangle"></i> Erro</h3>
+                    <p>${mensagem}</p>
+                </div>
+            `;
+        }
+
+        // Função para consultar CEP
+        async function consultarCEP() {
+            const cep = document.getElementById('cep').value.replace(/\D/g, '');
+            
+            if (cep.length !== 8) {
+                mostrarErro('resultado-cep', 'Por favor, digite um CEP válido com 8 dígitos.');
+                return;
+            }
+
+            mostrarLoading('resultado-cep');
+            
+            try {
+                const response = await fetch(`${API_BASE}/cep/${cep}`);
+                const data = await response.json();
+                
+                if (data.erro) {
+                    mostrarErro('resultado-cep', data.erro);
+                } else {
+                    document.getElementById('resultado-cep').innerHTML = `
+                        <div class="result">
+                            <h3><i class="fas fa-map-marker-alt"></i> Resultado da Consulta</h3>
+                            <div class="result-item">
+                                <span class="result-label">CEP:</span>
+                                <span class="result-value">${formatarCEP(data.cep)}</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Logradouro:</span>
+                                <span class="result-value">${data.logradouro}</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Bairro:</span>
+                                <span class="result-value">${data.bairro}</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Cidade:</span>
+                                <span class="result-value">${data.localidade}</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Estado:</span>
+                                <span class="result-value">${data.uf}</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">IBGE:</span>
+                                <span class="result-value">${data.ibge}</span>
+                            </div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                mostrarErro('resultado-cep', 'Erro ao consultar o CEP. Verifique sua conexão com a internet.');
+            }
+        }
+
+        // Função para consultar clima
+        async function consultarClima() {
+            const lat = document.getElementById('latitude').value;
+            const lon = document.getElementById('longitude').value;
+            
+            if (!lat || !lon) {
+                mostrarErro('resultado-clima', 'Por favor, preencha latitude e longitude.');
+                return;
+            }
+
+            mostrarLoading('resultado-clima');
+            
+            try {
+                const response = await fetch(`${API_BASE}/clima?lat=${lat}&lon=${lon}`);
+                const data = await response.json();
+                
+                if (data.error) {
+                    mostrarErro('resultado-clima', data.reason || 'Erro ao consultar o clima.');
+                } else {
+                    const current = data.current_weather;
+                    const temp = current.temperature;
+                    const windSpeed = current.windspeed;
+                    const windDirection = current.winddirection;
+                    
+                    document.getElementById('resultado-clima').innerHTML = `
+                        <div class="result">
+                            <h3><i class="fas fa-cloud-sun"></i> Previsão do Tempo</h3>
+                            <div class="result-item">
+                                <span class="result-label">Temperatura:</span>
+                                <span class="result-value">${temp}°C</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Velocidade do Vento:</span>
+                                <span class="result-value">${windSpeed} km/h</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Direção do Vento:</span>
+                                <span class="result-value">${windDirection}°</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Coordenadas:</span>
+                                <span class="result-value">${lat}, ${lon}</span>
+                            </div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                mostrarErro('resultado-clima', 'Erro ao consultar o clima. Verifique sua conexão com a internet.');
+            }
+        }
+
+        // Função para consultar moeda
+        async function consultarMoeda() {
+            const par = document.getElementById('par-moeda').value;
+            
+            mostrarLoading('resultado-moeda');
+            
+            try {
+                const response = await fetch(`${API_BASE}/moeda/${par}`);
+                const data = await response.json();
+                
+                if (data.error) {
+                    mostrarErro('resultado-moeda', 'Erro ao consultar a cotação da moeda.');
+                } else {
+                    // A API retorna a chave no formato USDBRL, não USD-BRL
+                    const chaveMoeda = par.replace('-', '');
+                    const moedaData = data[chaveMoeda];
+                    
+                    if (!moedaData) {
+                        mostrarErro('resultado-moeda', 'Par de moedas não encontrado.');
+                        return;
+                    }
+                    
+                    const bid = parseFloat(moedaData.bid);
+                    const ask = parseFloat(moedaData.ask);
+                    const high = parseFloat(moedaData.high);
+                    const low = parseFloat(moedaData.low);
+                    
+                    const pctChange = parseFloat(moedaData.pctChange);
+                    const varBid = parseFloat(moedaData.varBid);
+                    const pctChangeColor = pctChange >= 0 ? '#4CAF50' : '#f44336';
+                    const varBidColor = varBid >= 0 ? '#4CAF50' : '#f44336';
+                    
+                    document.getElementById('resultado-moeda').innerHTML = `
+                        <div class="result">
+                            <h3><i class="fas fa-dollar-sign"></i> Cotação da Moeda</h3>
+                            <div class="result-item">
+                                <span class="result-label">Par:</span>
+                                <span class="result-value">${moedaData.name}</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Compra:</span>
+                                <span class="result-value">R$ ${bid.toFixed(4)}</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Venda:</span>
+                                <span class="result-value">R$ ${ask.toFixed(4)}</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Máximo:</span>
+                                <span class="result-value">R$ ${high.toFixed(4)}</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Mínimo:</span>
+                                <span class="result-value">R$ ${low.toFixed(4)}</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Variação:</span>
+                                <span class="result-value" style="color: ${varBidColor};">${varBid >= 0 ? '+' : ''}${varBid.toFixed(4)}</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Variação %:</span>
+                                <span class="result-value" style="color: ${pctChangeColor};">${pctChange >= 0 ? '+' : ''}${pctChange.toFixed(4)}%</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Atualizado:</span>
+                                <span class="result-value">${new Date(moedaData.timestamp * 1000).toLocaleString('pt-BR')}</span>
+                            </div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                mostrarErro('resultado-moeda', 'Erro ao consultar a cotação. Verifique sua conexão com a internet.');
+            }
+        }
+
+        // Máscara para CEP
+        document.getElementById('cep').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 8) value = value.slice(0, 8);
+            if (value.length > 5) {
+                value = value.slice(0, 5) + '-' + value.slice(5);
+            }
+            e.target.value = value;
+        });
+
+        // Enter para buscar CEP
+        document.getElementById('cep').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                consultarCEP();
+            }
+        });
+
+        // Enter para buscar clima
+        document.getElementById('latitude').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                consultarClima();
+            }
+        });
+
+        document.getElementById('longitude').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                consultarClima();
+            }
+        });
+    </script>
+</body>
+</html> 
