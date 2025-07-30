@@ -260,6 +260,9 @@
                         <input type="number" id="latitude" class="form-control" placeholder="Latitude" step="any">
                         <input type="number" id="longitude" class="form-control" placeholder="Longitude" step="any">
                     </div>
+                    <button type="button" class="btn" onclick="obterLocalizacaoAtual()" style="margin-top: 10px; background: linear-gradient(45deg, #4CAF50, #45a049);">
+                        <i class="fas fa-location-arrow"></i> Usar Minha Localização
+                    </button>
                 </div>
                 
                 <button class="btn" onclick="consultarClima()">
@@ -507,6 +510,98 @@
                 }
             } catch (error) {
                 mostrarErro('resultado-moeda', 'Erro ao consultar a cotação. Verifique sua conexão com a internet.');
+            }
+        }
+
+        // Função para obter localização atual do navegador
+        function obterLocalizacaoAtual() {
+            if ("geolocation" in navigator) {
+                // Mostrar loading enquanto obtém a localização
+                mostrarLoading('resultado-clima');
+                
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        const lat = position.coords.latitude;
+                        const lon = position.coords.longitude;
+                        
+                        // Preencher os campos com as coordenadas obtidas
+                        document.getElementById('latitude').value = lat;
+                        document.getElementById('longitude').value = lon;
+                        
+                        // Consultar o clima automaticamente
+                        consultarClimaComCoordenadas(lat, lon);
+                    },
+                    (error) => {
+                        let mensagemErro = 'Não foi possível obter sua localização.';
+                        
+                        switch(error.code) {
+                            case error.PERMISSION_DENIED:
+                                mensagemErro = 'Permissão negada para acessar a localização. Verifique as configurações do navegador.';
+                                break;
+                            case error.POSITION_UNAVAILABLE:
+                                mensagemErro = 'Informações de localização indisponíveis.';
+                                break;
+                            case error.TIMEOUT:
+                                mensagemErro = 'Tempo limite excedido ao obter localização.';
+                                break;
+                        }
+                        
+                        mostrarErro('resultado-clima', mensagemErro);
+                        console.error("Erro ao obter localização:", error);
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        timeout: 10000,
+                        maximumAge: 60000
+                    }
+                );
+            } else {
+                mostrarErro('resultado-clima', 'Seu navegador não suporta a API de geolocalização.');
+            }
+        }
+
+        // Função auxiliar para consultar clima com coordenadas específicas
+        async function consultarClimaComCoordenadas(lat, lon) {
+            try {
+                const response = await fetch(`${API_BASE}/clima?lat=${lat}&lon=${lon}`);
+                const data = await response.json();
+                
+                if (data.error) {
+                    mostrarErro('resultado-clima', data.reason || 'Erro ao consultar o clima.');
+                } else {
+                    const current = data.current_weather;
+                    const temp = current.temperature;
+                    const windSpeed = current.windspeed;
+                    const windDirection = current.winddirection;
+                    
+                    document.getElementById('resultado-clima').innerHTML = `
+                        <div class="result">
+                            <h3><i class="fas fa-cloud-sun"></i> Previsão do Tempo</h3>
+                            <div class="result-item">
+                                <span class="result-label">Temperatura:</span>
+                                <span class="result-value">${temp}°C</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Velocidade do Vento:</span>
+                                <span class="result-value">${windSpeed} km/h</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Direção do Vento:</span>
+                                <span class="result-value">${windDirection}°</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Coordenadas:</span>
+                                <span class="result-value">${lat.toFixed(6)}, ${lon.toFixed(6)}</span>
+                            </div>
+                            <div class="result-item">
+                                <span class="result-label">Localização:</span>
+                                <span class="result-value">Sua localização atual</span>
+                            </div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                mostrarErro('resultado-clima', 'Erro ao consultar o clima. Verifique sua conexão com a internet.');
             }
         }
 
