@@ -487,6 +487,7 @@
                 </button>
                 
                 <div id="resultado-cep"></div>
+                <div id="historico-cep" style="margin-top: 20px;"></div>
             </div>
 
             <!-- Card Clima -->
@@ -811,6 +812,7 @@
                     // Salvar no cache
                     Cache.set(cacheKey, data, 600000); // 10 minutos para CEP
                     exibirResultadoCEP(data);
+                    salvarHistoricoCEP(formatarCEP(data.cep));
                     mostrarSucesso('resultado-cep', 'CEP consultado com sucesso!');
                 }
             } catch (error) {
@@ -856,6 +858,39 @@
                 </div>
             `;
         }
+
+                function salvarHistoricoCEP(cep) {
+            let historico = JSON.parse(localStorage.getItem("historico_cep")) || [];
+            historico.unshift(cep); // adiciona no início
+            historico = [...new Set(historico)]; // remove duplicados
+            historico = historico.slice(0, 5); // mantém os últimos 5
+            localStorage.setItem("historico_cep", JSON.stringify(historico));
+            mostrarHistoricoCEP();
+        }
+
+        function mostrarHistoricoCEP() {
+            const historico = JSON.parse(localStorage.getItem("historico_cep")) || [];
+            const container = document.getElementById("historico-cep");
+
+            if (historico.length === 0) {
+                container.innerHTML = "";
+                return;
+            }
+
+            container.innerHTML = `
+                <div class="result">
+                    <h3><i class="fas fa-history"></i> Histórico de CEPs</h3>
+                    <ul style="list-style: none; padding-left: 0;">
+                        ${historico.map(cep => `<li><button class="btn btn-secondary" style="margin: 5px;" onclick="preencherCEP('${cep}')">${cep}</button></li>`).join("")}
+                    </ul>
+                </div>
+            `;
+        }
+
+        function preencherCEP(cep) {
+            document.getElementById("cep").value = cep;
+            consultarCEP();
+        }  
 
         // Função para consultar clima
         async function consultarClima() {
@@ -1137,7 +1172,8 @@
         async function inicializarApp() {
             // Verificar status da API
             await verificarStatusAPI();
-            
+            mostrarHistoricoCEP();
+
             // Carregar dados do cache se disponível
             const cachedConsultas = localStorage.getItem('consultas_hoje');
             if (cachedConsultas) {
