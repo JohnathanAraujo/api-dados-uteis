@@ -123,4 +123,4 @@ Se você encontrar algum problema ou tiver sugestões, abra uma issue no reposit
 
 ---
 
-**Desenvolvido com ❤️ usando FastAPI e JavaScript** 
+**Desenvolvido com FastAPI e JavaScript**
