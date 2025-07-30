@@ -60,45 +60,6 @@ GET http://localhost:8000/clima?lat=-23.5505&lon=-46.6333
 GET http://localhost:8000/moeda/USD-BRL
 ```
 
-## 📁 Estrutura do Projeto
-
-```
-api_dados_uteis/
-├── main.py              # Servidor FastAPI
-├── requirements.txt      # Dependências Python
-├── static/
-│   └── index.html       # Interface web
-├── services/
-│   ├── cep.py          # Serviço de consulta de CEP
-│   ├── clima.py        # Serviço de previsão do tempo
-│   └── moeda.py        # Serviço de cotação de moedas
-└── README.md           # Este arquivo
-```
-
-## 🌟 Características da Interface
-
-- **Design Responsivo**: Funciona em desktop e mobile
-- **Interface Moderna**: Design limpo com gradientes e animações
-- **Feedback Visual**: Loading spinners e mensagens de erro
-- **Validação**: Verificação de dados de entrada
-- **UX Otimizada**: Máscaras de entrada e navegação por teclado
-
-## 🔧 Configuração
-
-### Variáveis de Ambiente (Opcional)
-Para produção, configure as seguintes variáveis:
-
-```bash
-# Configurar CORS para domínios específicos
-ALLOWED_ORIGINS=http://localhost:3000,https://seudominio.com
-```
-
-### Personalização
-Você pode personalizar a interface editando o arquivo `static/index.html`:
-- Cores e estilos no CSS
-- Novos pares de moedas no select
-- Adicionar novos campos de consulta
-
 ## 📊 APIs Utilizadas
 
 - **ViaCEP**: Consulta de CEPs brasileiros
@@ -123,4 +84,4 @@ Se você encontrar algum problema ou tiver sugestões, abra uma issue no reposit
 
 ---
 
-**Desenvolvido com FastAPI e JavaScript**
+**Desenvolvido com FastAPI, JavaScript e IA**
